@@ -9,11 +9,11 @@ class Grid:
         self.grid = []
         self.grid_history = []
 
-    def getGrid(self, x_pos, y_pos):
+    def get_grid(self, x_pos, y_pos):
         val = self.grid[x_pos][y_pos]
         return val
     
-    def setGrid(self, x_pos, y_pos, value):
+    def set_grid(self, x_pos, y_pos, value):
         self.grid[x_pos][y_pos] = value
 
     def getRandint(self, min, max):
@@ -29,14 +29,14 @@ class Grid:
     def getRandomEmptyLocation(self):
         x_pos = self.getRandint(0, self.x_axel_length - 1) 
         y_pos = self.getRandint(0, self.y_axel_length - 1) 
-        if (self.getGrid(x_pos, y_pos) == 0):
+        if (self.get_grid(x_pos, y_pos) == 0):
             return [x_pos, y_pos]
         else:
             empty_position_found = False
             while not empty_position_found:
                 x_pos = self.getRandint(0, self.x_axel_length - 1) 
                 y_pos = self.getRandint(0, self.y_axel_length - 1) 
-                if (self.getGrid(x_pos, y_pos) == 0):
+                if (self.get_grid(x_pos, y_pos) == 0):
                     empty_position_found = True
                     return [x_pos, y_pos]
 
@@ -44,22 +44,22 @@ class Grid:
         for instance in range(0, instances):
             x_pos = self.getRandint(0, self.x_axel_length - 1) 
             y_pos = self.getRandint(0, self.y_axel_length - 1) 
-            if (self.getGrid(x_pos, y_pos) == 0):
-                self.setGrid(x_pos, y_pos, value)
+            if (self.get_grid(x_pos, y_pos) == 0):
+                self.set_grid(x_pos, y_pos, value)
             else:
                 empty_position_found = False
                 while not empty_position_found:
                     x_pos = self.getRandint(0, self.x_axel_length - 1) 
                     y_pos = self.getRandint(0, self.y_axel_length - 1) 
-                    if (self.getGrid(x_pos, y_pos) == 0):
-                        self.setGrid(x_pos, y_pos, value)
+                    if (self.get_grid(x_pos, y_pos) == 0):
+                        self.set_grid(x_pos, y_pos, value)
                         empty_position_found = True
 
     def getValueLocations(self, value):
         locations = []
         for x_coord in range(0, self.x_axel_length):
             for y_coord in range(0, self.y_axel_length):
-                if(self.getGrid(x_coord, y_coord) == value): 
+                if(self.get_grid(x_coord, y_coord) == value): 
                     locations.append([x_coord, y_coord])
         return locations
     
@@ -72,7 +72,7 @@ class Grid:
 
         for x_pos in range(min_x_coord, max_x_coord + 1):
             for y_pos in range(min_y_coord, max_y_coord + 1):
-                if(self.getGrid(x_pos, y_pos) == value):
+                if(self.get_grid(x_pos, y_pos) == value):
                     if not(x_pos == x_coord and y_pos == y_coord):
                         value_found = True
                     
@@ -87,7 +87,7 @@ class Grid:
 
         for x_pos in possible_x_positions:
             for y_pos in possible_y_positions:
-                if(self.getGrid(x_pos, y_pos) == value):
+                if(self.get_grid(x_pos, y_pos) == value):
                     return [x_pos, y_pos]
         return None
     

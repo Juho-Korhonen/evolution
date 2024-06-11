@@ -5,11 +5,11 @@ from creature import Creature
 
 plate = Grid(50, 75)
 plate.initialize()
-plate.placeValueInRandomLocation(1000, 1)  # Placing initial food
+plate.placeValueInRandomLocation(2500, 1)  # Placing initial food
 
 simulation_duration = 500
 default_creature_energy = 6
-number_of_creatures = 150
+number_of_creatures = 500
 mutation_probability = 0.05  # 5%
 
 
@@ -23,7 +23,7 @@ def appendCreature(parent=None):
         offspring = parent.generateOffspring(default_creature_energy)
 
     randLocation = plate.getRandomEmptyLocation()
-    plate.setGrid(randLocation[0], randLocation[1], offspring.color)
+    plate.set_grid(randLocation[0], randLocation[1], offspring.color)
     offspring.location = randLocation
     creatures.append(offspring)
     
@@ -46,7 +46,7 @@ for second in range(1, simulation_duration):
             if plant_should_grow:
                 growth_location = plate.getLocationWithValueCloseToLocation(plantLocation[0], plantLocation[1], 0)
                 if growth_location:
-                    plate.setGrid(growth_location[0], growth_location[1], 1)
+                    plate.set_grid(growth_location[0], growth_location[1], 1)
 
     creatures_to_remove = []
 
@@ -54,7 +54,7 @@ for second in range(1, simulation_duration):
         creature.energy -= 1
 
         if creature.energy < 3:
-            plate.setGrid(creature.location[0], creature.location[1], 0)
+            plate.set_grid(creature.location[0], creature.location[1], 0)
             creatures_to_remove.append(creature)
             continue
 
@@ -66,42 +66,50 @@ for second in range(1, simulation_duration):
                 if x_coord < 0 or x_coord >= plate.x_axel_length or y_coord < 0 or y_coord >= plate.y_axel_length:
                     input_matrix.append(-1)  # Outside of screen
                 else:
-                    spotvalue = plate.getGrid(x_coord, y_coord)
+                    spotvalue = plate.get_grid(x_coord, y_coord)
                     if spotvalue != 1 and spotvalue != 0 and spotvalue != -1: # if its a creature
                         spotvalue = 0  # Everything except food is 0
                     input_matrix.append(spotvalue)
                     
 
-        output_values = creature.brain.generateOutput(input_matrix)
+        output_values = creature.brain.generate_output(input_matrix)
 
         x_change = 0
         y_change = 0
+        
+        if(output_values[0] > 0.5):
+            x_change += 1
+        if(output_values[1] > 0.5):
+            x_change -= 1
+            
+        if(output_values[2] > 0.5):
+            y_change += 1
+        if(output_values[3] > 0.5):
+            y_change -= 1
 
-        if output_values[0] > output_values[1]:
-            if creature.location[0] < plate.x_axel_length - 1:
-                x_change += 1
-        elif output_values[0] < output_values[1]:
-            if creature.location[0] > 0:
-                x_change -= 1
-
-        if output_values[2] > output_values[3]:
-            if creature.location[1] < plate.y_axel_length - 1:
-                y_change += 1
-        elif output_values[2] < output_values[3]:
-            if creature.location[1] > 0:
-                y_change -= 1
+        if(creature.location[0] == plate.x_axel_length and x_change > 0):
+            x_change = 0
+            
+        if(creature.location[1] == plate.y_axel_length and y_change > 0):
+            y_change = 0
+            
+        if(creature.location[0] == 0 and x_change < 0):
+            x_change = 0
+            
+        if(creature.location[1] == 0 and y_change < 0):
+            y_change = 0
 
         new_location = [creature.location[0] + x_change, creature.location[1] + y_change]
         if 0 <= new_location[0] < plate.x_axel_length and 0 <= new_location[1] < plate.y_axel_length:
-            value_of_new_location = plate.getGrid(new_location[0], new_location[1])
+            value_of_new_location = plate.get_grid(new_location[0], new_location[1])
 
             if value_of_new_location in [0, 1]:
                 if value_of_new_location == 1:
                     creature.energy += 2.1
 
-                plate.setGrid(creature.location[0], creature.location[1], 0)
+                plate.set_grid(creature.location[0], creature.location[1], 0)
                 creature.location = new_location
-                plate.setGrid(creature.location[0], creature.location[1], creature.color)
+                plate.set_grid(creature.location[0], creature.location[1], creature.color)
 
         if creature.energy > 11:
             new_creature_location = plate.getLocationWithValueCloseToLocation(creature.location[0], creature.location[1], 0)
