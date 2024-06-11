@@ -4,13 +4,13 @@ import random
 from creature import Creature
 from neural_network import brain
 
-plate = Grid(150, 150)
+plate = Grid(100, 100)
 plate.initialize()
-plate.placeValueInRandomLocation(20000, 1)  # Placing initial food
+plate.placeValueInRandomLocation(7500, 1)  # Placing initial food
 
-simulation_duration = 1000
-default_creature_energy = 5
-number_of_creatures = 1000
+simulation_duration = 10
+default_creature_energy = 6
+number_of_creatures = 2000
 
 creatures = []
 
@@ -18,7 +18,7 @@ for index in range(number_of_creatures):
     new_creature = Creature(energy=default_creature_energy)
     new_creature.brain = brain(identifier=new_creature.identifier)  # Create brain of creature
     randLocation = plate.getRandomEmptyLocation()
-    plate.setGrid(randLocation[0], randLocation[1], new_creature.energy)
+    plate.setGrid(randLocation[0], randLocation[1], new_creature.brain.color)
     new_creature.location = randLocation
     creatures.append(new_creature)
 
@@ -57,8 +57,8 @@ for second in range(1, simulation_duration):
                     input_matrix.append(-1)  # Outside of screen
                 else:
                     spotvalue = plate.getGrid(x_coord, y_coord)
-                    if spotvalue > 1:
-                        spotvalue = 2  # Everything except food is 0
+                    if spotvalue != 1 and spotvalue != 0 and spotvalue != -1: # if its a creature
+                        spotvalue = 0  # Everything except food is 0
                     input_matrix.append(spotvalue)
 
         output_values = creature.brain.generateOutput(input_matrix)
@@ -90,7 +90,7 @@ for second in range(1, simulation_duration):
 
                 plate.setGrid(creature.location[0], creature.location[1], 0)
                 creature.location = new_location
-                plate.setGrid(creature.location[0], creature.location[1], creature.energy)
+                plate.setGrid(creature.location[0], creature.location[1], creature.brain.color)
 
         if creature.energy > 11:
             new_creature_location = plate.getLocationWithValueCloseToLocation(creature.location[0], creature.location[1], 0)
@@ -107,7 +107,7 @@ for second in range(1, simulation_duration):
                 new_creature.brain.mutate()
 
                 new_creature.location = new_creature_location
-                plate.setGrid(new_creature_location[0], new_creature_location[1], new_creature.energy)
+                plate.setGrid(new_creature_location[0], new_creature_location[1], new_creature.brain.color)
                 creatures.append(new_creature)
 
     for creature in creatures_to_remove:
@@ -120,14 +120,12 @@ create_video(
     labels={
         "zero": "Empty",
         "one": "Food",
-        "two": "Organism",
     },
-    colors={
-        "zero": "white",
-        "one": "green",
-        "two": "#ff0000",  # Red
-        "two_to_cyan": "#00ffff"  # Cyan
+    colors = {
+        "zero": (255,255,255),  # white
+        "one": (0,177,64),  # green
     },
-    fps=4
+    fps=1,
+    grid_size= plate.x_axel_length*plate.y_axel_length
 )
 print("Video generated")
