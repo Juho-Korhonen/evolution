@@ -8,7 +8,7 @@ plate = Grid(100, 100)
 plate.initialize()
 plate.placeValueInRandomLocation(7500, 1)  # Placing initial food
 
-simulation_duration = 10
+simulation_duration = 250
 default_creature_energy = 6
 number_of_creatures = 2000
 
@@ -98,8 +98,7 @@ for second in range(1, simulation_duration):
                 creature.energy -= 6
                 new_creature = Creature(energy=default_creature_energy)
                 new_creature.brain = brain(
-                    first_bias=creature.brain.first_bias.copy(),
-                    output_bias=creature.brain.output_bias.copy(),
+                    biases = creature.brain.biases.copy(),
                     output_layer_weights=[w.copy() for w in creature.brain.output_layer_weights],
                     first_layer_weights=[w.copy() for w in creature.brain.first_layer_weights],
                 )
@@ -124,7 +123,7 @@ create_video(
         "zero": (255,255,255),  # white
         "one": (0,177,64),  # green
     },
-    fps=1,
+    fps=4,
     grid_size= plate.x_axel_length*plate.y_axel_length
 )
 print("Video generated")

@@ -16,10 +16,10 @@ def generateRandomBias(number_of_nodes):
     return np.random.uniform(-0.5, 0.5, number_of_nodes).tolist()
 
 class Brain:
-    def __init__(self, first_layer_weights, first_bias, output_layer_weights, output_bias, color, mutation_probability, number_of_output_layers, number_of_hidden_layers):
+    def __init__(self, first_layer_weights, output_layer_weights, color, mutation_probability, number_of_output_layers, number_of_hidden_layers, biases):
         
-        self.first_bias = first_bias
-        self.output_bias = output_bias
+        self.biases = biases
+        
         self.hidden_layers = number_of_hidden_layers
         self.output_layers = number_of_output_layers
         
@@ -40,7 +40,7 @@ class Brain:
                 weighted_value = input_value * weights_of_hidden_layer[input_index]
                 hidden_layer_value += weighted_value  # add weighted value to hidden layer value
                 
-            hidden_layer_value += self.first_bias[hidden_layer_index]  # add bias after summing weights
+            hidden_layer_value += self.biases[0][hidden_layer_index]  # add bias after summing weights
             calculated_hidden_layers.append(relu(hidden_layer_value))  # apply relu to hidden layer value and add to list
             
         return calculated_hidden_layers
@@ -56,7 +56,7 @@ class Brain:
                 weighted_value = prev_layer_value * weights_of_output_layer[prev_layer_index]
                 output_node_value += weighted_value  # add weighted value to output layer value
                 
-            output_node_value += self.output_bias[output_index]  # add bias after summing weights
+            output_node_value += self.biases[len(self.biases)-1][output_index]  # add bias after summing weights
             calculated_output_layers.append(output_node_value)  # add output layer value to list
             
         return calculated_output_layers
@@ -80,23 +80,23 @@ number_of_input_layers = 24
 number_of_hidden_layers = 5
 number_of_output_layers = 4
 
-def brain(first_layer_weights=None, output_layer_weights=None, first_bias=None, output_bias=None):
+def brain(first_layer_weights=None, output_layer_weights=None, biases=None):
     random.seed(uuid.uuid4().int)  # Seed the random number generator with a unique value
     
     if first_layer_weights is None:
         first_layer_weights = generateRandomWeightsForNodes(number_of_input_layers, number_of_hidden_layers)
     if output_layer_weights is None:
         output_layer_weights = generateRandomWeightsForNodes(number_of_hidden_layers, number_of_output_layers)
-    if first_bias is None:
-        first_bias = generateRandomBias(number_of_hidden_layers)
-    if output_bias is None:
-        output_bias = generateRandomBias(number_of_output_layers)
+    if biases is None:
+        biases = [
+            generateRandomBias(number_of_hidden_layers),
+            generateRandomBias(number_of_output_layers)
+        ]
     
     return Brain(
+        biases=biases,
         first_layer_weights=first_layer_weights,
-        first_bias=first_bias,
         output_layer_weights=output_layer_weights,
-        output_bias=output_bias,
         color=[random.randint(0, 255) for _ in range(3)],
         mutation_probability=mutation_probability,
         number_of_hidden_layers=number_of_hidden_layers,
