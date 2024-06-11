@@ -17,22 +17,18 @@ mutation_probability = 0.05  # 5%
 creatures = []
 
 def appendCreature(parent=None):
-    new_creature = Creature(energy=default_creature_energy, mutation_probability=mutation_probability)
+    offspring = None
     if(parent == None):
-        new_creature.brain = brain()  # Create brain of creature
+        offspring = Creature(energy=default_creature_energy, mutation_probability=mutation_probability)
     else:
-        new_creature.color = parent.color
-        new_creature.brain = brain(
-            biases = parent.brain.biases.copy(),
-            output_layer_weights=[w.copy() for w in parent.brain.output_layer_weights],
-            first_layer_weights=[w.copy() for w in parent.brain.first_layer_weights],
-        )
+        offspring = parent.generateOffspring(default_creature_energy)
+
     randLocation = plate.getRandomEmptyLocation()
-    plate.setGrid(randLocation[0], randLocation[1], new_creature.color)
-    new_creature.location = randLocation
-    creatures.append(new_creature)
+    plate.setGrid(randLocation[0], randLocation[1], offspring.color)
+    offspring.location = randLocation
+    creatures.append(offspring)
     
-    return new_creature
+    return offspring
 
 for index in range(number_of_creatures):
     appendCreature()
@@ -113,7 +109,6 @@ for second in range(1, simulation_duration):
             if new_creature_location:
                 creature.energy -= 6
                 new_creature = appendCreature(parent=creature)
-                new_creature.mutate()
 
     for creature in creatures_to_remove:
         creatures.remove(creature)

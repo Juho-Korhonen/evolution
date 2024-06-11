@@ -16,22 +16,23 @@ def generateRandomBias(number_of_nodes):
     return np.random.uniform(-0.5, 0.5, number_of_nodes).tolist()
 
 class Brain:
-    def __init__(self, first_layer_weights, output_layer_weights, number_of_output_layers, number_of_hidden_layers, biases):
+    def __init__(self, number_of_output_layers, number_of_hidden_layers, biases, weights):
         
         self.biases = biases
         
+        self.weights = weights
+        
         self.hidden_layers = number_of_hidden_layers
         self.output_layers = number_of_output_layers
-        
-        self.first_layer_weights = first_layer_weights
-        self.output_layer_weights = output_layer_weights
-        
+
+    def output_layer_weights(self):
+        return self.weights[len(self.weights)-1]
 
     def getFirstHiddenLayerValues(self, inputs):
         calculated_hidden_layers = []
         
         for hidden_layer_index in range(0, self.hidden_layers):  # for each hidden layer
-            weights_of_hidden_layer = self.first_layer_weights[hidden_layer_index]  # get first_layer_weights of hidden layer
+            weights_of_hidden_layer = self.weights[0][hidden_layer_index]  # get weights of first hidden layer
             hidden_layer_value = 0  # set value to zero
             
             for input_index, input_value in enumerate(inputs):  # for each input
@@ -47,7 +48,7 @@ class Brain:
         calculated_output_layers = []
         
         for output_index in range(0, self.output_layers):  # for each output layer
-            weights_of_output_layer = self.output_layer_weights[output_index]  # get output_layer_weights of hidden layer
+            weights_of_output_layer = self.output_layer_weights()[output_index]  # get output layer weights of output node
             output_node_value = 0  # set value to zero
             
             for prev_layer_index, prev_layer_value in enumerate(prev_layer_values):  # for each input
@@ -64,23 +65,24 @@ class Brain:
         output_nodes = self.getOutputValues(hidden_node_values)
         return softmax(output_nodes)
 
-    def mutate(self, mutation_probability):
-        for node_index, node_weights in enumerate(self.first_layer_weights):
+    def mutate_brain_structure(self, mutation_probability):
+        for node_index, node_weights in enumerate(self.weights[0]):
             for index, node_weight in enumerate(node_weights):
                 if random.random() < mutation_probability:
-                    self.first_layer_weights[node_index][index] += (random.uniform(-0.5, 0.5))
+                    self.weights[0][node_index][index] += (random.uniform(-0.5, 0.5))
 
 number_of_input_layers = 25
 number_of_hidden_layers = 8
 number_of_output_layers = 4
 
-def brain(first_layer_weights=None, output_layer_weights=None, biases=None):
+def create_random_brain_structure(biases=None, weights=None):
     random.seed(uuid.uuid4().int)  # Seed the random number generator with a unique value
     
-    if first_layer_weights is None:
-        first_layer_weights = generateRandomWeightsForNodes(number_of_input_layers, number_of_hidden_layers)
-    if output_layer_weights is None:
-        output_layer_weights = generateRandomWeightsForNodes(number_of_hidden_layers, number_of_output_layers)
+    if(weights is None):
+        weights = [
+            generateRandomWeightsForNodes(number_of_input_layers, number_of_hidden_layers),
+            generateRandomWeightsForNodes(number_of_hidden_layers, number_of_output_layers)
+        ]
     if biases is None:
         biases = [
             generateRandomBias(number_of_hidden_layers),
@@ -89,8 +91,7 @@ def brain(first_layer_weights=None, output_layer_weights=None, biases=None):
     
     return Brain(
         biases=biases,
-        first_layer_weights=first_layer_weights,
-        output_layer_weights=output_layer_weights,
+        weights=weights,
         number_of_hidden_layers=number_of_hidden_layers,
         number_of_output_layers=number_of_output_layers,
     )
