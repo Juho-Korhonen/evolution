@@ -2,7 +2,6 @@ from grid import Grid
 from visualize import create_video
 import random
 from creature import Creature
-from neural_network import brain
 
 plate = Grid(50, 75)
 plate.initialize()
