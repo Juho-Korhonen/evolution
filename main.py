@@ -16,7 +16,7 @@ creatures = []
 
 for index in range(number_of_creatures):
     new_creature = Creature(energy=default_creature_energy)
-    new_creature.brain = brain(identifier=new_creature.identifier)  # Create brain of creature
+    new_creature.brain = brain()  # Create brain of creature
     randLocation = plate.getRandomEmptyLocation()
     plate.setGrid(randLocation[0], randLocation[1], new_creature.brain.color)
     new_creature.location = randLocation
@@ -98,7 +98,6 @@ for second in range(1, simulation_duration):
                 creature.energy -= 6
                 new_creature = Creature(energy=default_creature_energy)
                 new_creature.brain = brain(
-                    identifier=new_creature.identifier,
                     first_bias=creature.brain.first_bias.copy(),
                     output_bias=creature.brain.output_bias.copy(),
                     output_layer_weights=[w.copy() for w in creature.brain.output_layer_weights],

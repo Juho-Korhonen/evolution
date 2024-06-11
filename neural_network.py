@@ -16,8 +16,7 @@ def generateRandomBias(number_of_nodes):
     return np.random.uniform(-0.5, 0.5, number_of_nodes).tolist()
 
 class Brain:
-    def __init__(self, first_layer_weights, first_bias, output_layer_weights, output_bias, color, mutation_probability, number_of_output_layers, number_of_hidden_layers, identifier):
-        self.identifier = identifier
+    def __init__(self, first_layer_weights, first_bias, output_layer_weights, output_bias, color, mutation_probability, number_of_output_layers, number_of_hidden_layers):
         
         self.first_bias = first_bias
         self.output_bias = output_bias
@@ -81,7 +80,7 @@ number_of_input_layers = 24
 number_of_hidden_layers = 5
 number_of_output_layers = 4
 
-def brain(identifier, first_layer_weights=None, output_layer_weights=None, first_bias=None, output_bias=None):
+def brain(first_layer_weights=None, output_layer_weights=None, first_bias=None, output_bias=None):
     random.seed(uuid.uuid4().int)  # Seed the random number generator with a unique value
     
     if first_layer_weights is None:
@@ -102,5 +101,4 @@ def brain(identifier, first_layer_weights=None, output_layer_weights=None, first
         mutation_probability=mutation_probability,
         number_of_hidden_layers=number_of_hidden_layers,
         number_of_output_layers=number_of_output_layers,
-        identifier=identifier
     )
