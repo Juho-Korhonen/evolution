@@ -6,3 +6,4 @@ class Creature:
         self.energy = energy
         self.identifier = uuid.uuid4()
         self.location = []
+        self.brain = None

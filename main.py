@@ -4,114 +4,117 @@ import random
 from creature import Creature
 from neural_network import brain
 
-
-
-plate = Grid(150, 10)
+plate = Grid(150, 150)
 plate.initialize()
-plate.placeValueInRandomLocation(500, 1) 
+plate.placeValueInRandomLocation(20000, 1)  # Placing initial food
 
 simulation_duration = 1000
-default_creature_energy = 10
-number_of_creatures = 10
-
-
+default_creature_energy = 5
+number_of_creatures = 1000
 
 creatures = []
 
-
-
-for index in range(0,number_of_creatures):
+for index in range(number_of_creatures):
     new_creature = Creature(energy=default_creature_energy)
+    new_creature.brain = brain(identifier=new_creature.identifier)  # Create brain of creature
     randLocation = plate.getRandomEmptyLocation()
     plate.setGrid(randLocation[0], randLocation[1], new_creature.energy)
     new_creature.location = randLocation
     creatures.append(new_creature)
 
-    # creature list contains locations of all creatures, we just display energy of creature, that is all.
-
-
-
 for second in range(1, simulation_duration):
-    plate.saveGridHistory() 
+    plate.saveGridHistory()
 
-    print("second " + str(second))
-    
+    print(f"second {second}")
+
+    # Plant growth logic
     plantLocations = plate.getValueLocations(1)
     for plantLocation in plantLocations:
         spaceforplant = plate.checkIfValueCloseToLocation(plantLocation[0], plantLocation[1], 0)
-        if spaceforplant: # if empty space for plant to grow
+        if spaceforplant:
             plant_should_grow = random.randint(1, 10) == 10
             if plant_should_grow:
-                growth_location = plate.getLocationWithValueCloseToLocation(plantLocation[0], plantLocation[1], 0) # gets random location for plant to grow
+                growth_location = plate.getLocationWithValueCloseToLocation(plantLocation[0], plantLocation[1], 0)
                 if growth_location:
-                    plate.setGrid(growth_location[0], growth_location[1], 1) # sets new plant in growth location
+                    plate.setGrid(growth_location[0], growth_location[1], 1)
+
+    creatures_to_remove = []
 
     for creature in creatures:
         creature.energy -= 1
-        
-        
-        if(creature.energy > 11):
-            new_creature_location = plate.getLocationWithValueCloseToLocation(creature.location[0], creature.location[1], 0) # get random food if its close
-            if(new_creature_location):
+
+        if creature.energy < 3:
+            plate.setGrid(creature.location[0], creature.location[1], 0)
+            creatures_to_remove.append(creature)
+            continue
+
+        input_matrix = []
+        for x_coord in range(creature.location[0] - 2, creature.location[0] + 3):
+            for y_coord in range(creature.location[1] - 2, creature.location[1] + 3):
+                if (creature.location[0] == x_coord and creature.location[1] == y_coord):
+                    continue  # Skip own position
+                if x_coord < 0 or x_coord >= plate.x_axel_length or y_coord < 0 or y_coord >= plate.y_axel_length:
+                    input_matrix.append(-1)  # Outside of screen
+                else:
+                    spotvalue = plate.getGrid(x_coord, y_coord)
+                    if spotvalue > 1:
+                        spotvalue = 2  # Everything except food is 0
+                    input_matrix.append(spotvalue)
+
+        output_values = creature.brain.generateOutput(input_matrix)
+
+        x_change = 0
+        y_change = 0
+
+        if output_values[0] > output_values[1]:
+            if creature.location[0] < plate.x_axel_length - 1:
+                x_change += 1
+        elif output_values[0] < output_values[1]:
+            if creature.location[0] > 0:
+                x_change -= 1
+
+        if output_values[2] > output_values[3]:
+            if creature.location[1] < plate.y_axel_length - 1:
+                y_change += 1
+        elif output_values[2] < output_values[3]:
+            if creature.location[1] > 0:
+                y_change -= 1
+
+        new_location = [creature.location[0] + x_change, creature.location[1] + y_change]
+        if 0 <= new_location[0] < plate.x_axel_length and 0 <= new_location[1] < plate.y_axel_length:
+            value_of_new_location = plate.getGrid(new_location[0], new_location[1])
+
+            if value_of_new_location in [0, 1]:
+                if value_of_new_location == 1:
+                    creature.energy += 2.1
+
+                plate.setGrid(creature.location[0], creature.location[1], 0)
+                creature.location = new_location
+                plate.setGrid(creature.location[0], creature.location[1], creature.energy)
+
+        if creature.energy > 11:
+            new_creature_location = plate.getLocationWithValueCloseToLocation(creature.location[0], creature.location[1], 0)
+            if new_creature_location:
                 creature.energy -= 6
-                
                 new_creature = Creature(energy=default_creature_energy)
-                
+                new_creature.brain = brain(
+                    identifier=new_creature.identifier,
+                    first_bias=creature.brain.first_bias.copy(),
+                    output_bias=creature.brain.output_bias.copy(),
+                    output_layer_weights=[w.copy() for w in creature.brain.output_layer_weights],
+                    first_layer_weights=[w.copy() for w in creature.brain.first_layer_weights],
+                )
+                new_creature.brain.mutate()
+
                 new_creature.location = new_creature_location
                 plate.setGrid(new_creature_location[0], new_creature_location[1], new_creature.energy)
-                
                 creatures.append(new_creature)
-            
-        if(creature.energy > 10):
-            weakCreatureNearby = plate.getLocationWithValueCloseToLocation(creature.location[0], creature.location[1], 3) # get random weak creature if its close
-            if not weakCreatureNearby:
-                weakCreatureNearby = plate.getLocationWithValueCloseToLocation(creature.location[0], creature.location[1], 4) # get random weak creature if its close
-                
-            if weakCreatureNearby:
-                creature.energy += 3
-                plate.setGrid(creature.location[0], creature.location[1], 0)
-                plate.setGrid(weakCreatureNearby[0], weakCreatureNearby[1], creature.energy)
-                creature.location = weakCreatureNearby
-            else:
-                freeSpaceNearby = plate.getLocationWithValueCloseToLocation(creature.location[0], creature.location[1], 0) # get random food if its close
-                if(freeSpaceNearby):
-                    plate.setGrid(creature.location[0], creature.location[1], 0)
-                    plate.setGrid(freeSpaceNearby[0], freeSpaceNearby[1], creature.energy)
-                    creature.location = freeSpaceNearby
-        
-        elif(creature.energy > 3):
-            foodNearby = plate.getLocationWithValueCloseToLocation(creature.location[0], creature.location[1], 1) # get random food if its close
-            if foodNearby:
-                creature.energy += 2.1
-                plate.setGrid(creature.location[0], creature.location[1], 0)
-                plate.setGrid(foodNearby[0], foodNearby[1], creature.energy)
-                creature.location = foodNearby
-            else:
-                freeSpaceNearby = plate.getLocationWithValueCloseToLocation(creature.location[0], creature.location[1], 0) # get random food if its close
-                if(freeSpaceNearby):
-                    plate.setGrid(creature.location[0], creature.location[1], 0)
-                    plate.setGrid(freeSpaceNearby[0], freeSpaceNearby[1], creature.energy)
-                    creature.location = freeSpaceNearby
-        else:
-            plate.setGrid(creature.location[0], creature.location[1], 0)
-        
 
-            
-
-
-
-
-
-
-
-
-
-
+    for creature in creatures_to_remove:
+        creatures.remove(creature)
 
 print("Simulation finished, generating video")
 
-
-print(plate.grid_history[len(plate.grid_history)-1])
 create_video(
     plate.grid_history,
     labels={
@@ -122,7 +125,7 @@ create_video(
     colors={
         "zero": "white",
         "one": "green",
-        "two": "#ff0000",   # Red
+        "two": "#ff0000",  # Red
         "two_to_cyan": "#00ffff"  # Cyan
     },
     fps=4

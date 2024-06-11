@@ -6,6 +6,8 @@ from matplotlib.colors import LinearSegmentedColormap
 
 def create_video(grid_history, labels, colors, fps):
     data = [np.array(matrix) for matrix in grid_history]  # Ensure all matrices are numpy arrays
+    
+    
 
     # Define a custom colormap with proper range 0 to 1
     cmap_colors = [
@@ -26,6 +28,12 @@ def create_video(grid_history, labels, colors, fps):
         # Transpose the matrix to switch x and y axes
         matrix = np.transpose(matrix)
         
+        flattened_matrix = matrix.flatten()
+
+        # Count the number of 1s and 2s
+        count_of_ones = np.count_nonzero(flattened_matrix == 1)
+        count_of_twos = np.count_nonzero(flattened_matrix > 1)
+        
         fig, ax = plt.subplots()
         cax = ax.matshow(matrix, cmap=cmap, vmin=0, vmax=10)
 
@@ -41,6 +49,12 @@ def create_video(grid_history, labels, colors, fps):
         ax.invert_yaxis()
 
         plt.title(f"Second {second}")
+        ax.text(-0.2, -0.15, 'creatures: ' + str(count_of_twos), horizontalalignment='center',
+                verticalalignment='center', transform=ax.transAxes, fontsize=12)
+        ax.text(1.2, -0.15, 'grass: ' + str(count_of_ones), horizontalalignment='center',
+                verticalalignment='center', transform=ax.transAxes, fontsize=12)
+        
+        plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.2)
         plt.savefig(f"assets/frames/frame_{second}.png")
         plt.close()
 
