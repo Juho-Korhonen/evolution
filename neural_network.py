@@ -16,7 +16,7 @@ def generateRandomBias(number_of_nodes):
     return np.random.uniform(-0.5, 0.5, number_of_nodes).tolist()
 
 class Brain:
-    def __init__(self, first_layer_weights, output_layer_weights, color, mutation_probability, number_of_output_layers, number_of_hidden_layers, biases):
+    def __init__(self, first_layer_weights, output_layer_weights, number_of_output_layers, number_of_hidden_layers, biases):
         
         self.biases = biases
         
@@ -26,8 +26,6 @@ class Brain:
         self.first_layer_weights = first_layer_weights
         self.output_layer_weights = output_layer_weights
         
-        self.color = color
-        self.mutation_probability = mutation_probability
 
     def getFirstHiddenLayerValues(self, inputs):
         calculated_hidden_layers = []
@@ -66,18 +64,14 @@ class Brain:
         output_nodes = self.getOutputValues(hidden_node_values)
         return softmax(output_nodes)
 
-    def mutate(self):
-        if random.random() < self.mutation_probability:
-            self.color = [max(0, min(255, c + random.randint(-3, 3))) for c in self.color]
-        
+    def mutate(self, mutation_probability):
         for node_index, node_weights in enumerate(self.first_layer_weights):
             for index, node_weight in enumerate(node_weights):
-                if random.random() < self.mutation_probability:
+                if random.random() < mutation_probability:
                     self.first_layer_weights[node_index][index] += (random.uniform(-0.5, 0.5))
 
-mutation_probability = 0.05  # 5%
-number_of_input_layers = 24
-number_of_hidden_layers = 5
+number_of_input_layers = 25
+number_of_hidden_layers = 8
 number_of_output_layers = 4
 
 def brain(first_layer_weights=None, output_layer_weights=None, biases=None):
@@ -97,8 +91,6 @@ def brain(first_layer_weights=None, output_layer_weights=None, biases=None):
         biases=biases,
         first_layer_weights=first_layer_weights,
         output_layer_weights=output_layer_weights,
-        color=[random.randint(0, 255) for _ in range(3)],
-        mutation_probability=mutation_probability,
         number_of_hidden_layers=number_of_hidden_layers,
         number_of_output_layers=number_of_output_layers,
     )

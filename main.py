@@ -4,23 +4,38 @@ import random
 from creature import Creature
 from neural_network import brain
 
-plate = Grid(100, 100)
+plate = Grid(50, 75)
 plate.initialize()
-plate.placeValueInRandomLocation(7500, 1)  # Placing initial food
+plate.placeValueInRandomLocation(1000, 1)  # Placing initial food
 
-simulation_duration = 250
+simulation_duration = 500
 default_creature_energy = 6
-number_of_creatures = 2000
+number_of_creatures = 150
+mutation_probability = 0.05  # 5%
+
 
 creatures = []
 
-for index in range(number_of_creatures):
-    new_creature = Creature(energy=default_creature_energy)
-    new_creature.brain = brain()  # Create brain of creature
+def appendCreature(parent=None):
+    new_creature = Creature(energy=default_creature_energy, mutation_probability=mutation_probability)
+    if(parent == None):
+        new_creature.brain = brain()  # Create brain of creature
+    else:
+        new_creature.color = parent.color
+        new_creature.brain = brain(
+            biases = parent.brain.biases.copy(),
+            output_layer_weights=[w.copy() for w in parent.brain.output_layer_weights],
+            first_layer_weights=[w.copy() for w in parent.brain.first_layer_weights],
+        )
     randLocation = plate.getRandomEmptyLocation()
-    plate.setGrid(randLocation[0], randLocation[1], new_creature.brain.color)
+    plate.setGrid(randLocation[0], randLocation[1], new_creature.color)
     new_creature.location = randLocation
     creatures.append(new_creature)
+    
+    return new_creature
+
+for index in range(number_of_creatures):
+    appendCreature()
 
 for second in range(1, simulation_duration):
     plate.saveGridHistory()
@@ -48,7 +63,7 @@ for second in range(1, simulation_duration):
             creatures_to_remove.append(creature)
             continue
 
-        input_matrix = []
+        input_matrix = [creature.energy]
         for x_coord in range(creature.location[0] - 2, creature.location[0] + 3):
             for y_coord in range(creature.location[1] - 2, creature.location[1] + 3):
                 if (creature.location[0] == x_coord and creature.location[1] == y_coord):
@@ -60,6 +75,7 @@ for second in range(1, simulation_duration):
                     if spotvalue != 1 and spotvalue != 0 and spotvalue != -1: # if its a creature
                         spotvalue = 0  # Everything except food is 0
                     input_matrix.append(spotvalue)
+                    
 
         output_values = creature.brain.generateOutput(input_matrix)
 
@@ -90,23 +106,14 @@ for second in range(1, simulation_duration):
 
                 plate.setGrid(creature.location[0], creature.location[1], 0)
                 creature.location = new_location
-                plate.setGrid(creature.location[0], creature.location[1], creature.brain.color)
+                plate.setGrid(creature.location[0], creature.location[1], creature.color)
 
         if creature.energy > 11:
             new_creature_location = plate.getLocationWithValueCloseToLocation(creature.location[0], creature.location[1], 0)
             if new_creature_location:
                 creature.energy -= 6
-                new_creature = Creature(energy=default_creature_energy)
-                new_creature.brain = brain(
-                    biases = creature.brain.biases.copy(),
-                    output_layer_weights=[w.copy() for w in creature.brain.output_layer_weights],
-                    first_layer_weights=[w.copy() for w in creature.brain.first_layer_weights],
-                )
-                new_creature.brain.mutate()
-
-                new_creature.location = new_creature_location
-                plate.setGrid(new_creature_location[0], new_creature_location[1], new_creature.brain.color)
-                creatures.append(new_creature)
+                new_creature = appendCreature(parent=creature)
+                new_creature.mutate()
 
     for creature in creatures_to_remove:
         creatures.remove(creature)
@@ -123,7 +130,7 @@ create_video(
         "zero": (255,255,255),  # white
         "one": (0,177,64),  # green
     },
-    fps=4,
+    fps=1,
     grid_size= plate.x_axel_length*plate.y_axel_length
 )
 print("Video generated")
